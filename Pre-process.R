@@ -99,21 +99,3 @@ modeldata<-cbind(data_clean$Id,data_clean$help_int,combtext.clean.df.uni,combtex
 set.seed(1)
 trainrows<-sample(1:nrow(modeldata),size=nrow(modeldata)*0.7)
 
-###################### Models ######################  scratch code ------------------------------------------------------------------------------------
-# Logistic regression (step)------------------------------------------------------------------------
-glm1 <- glm(as.factor(traindata[,targetcol])~.-id, data=sample_n(traindata,10000), family = binomial(link = 'logit'))
-step <- stepAIC(glm1, direction="both")
-step$anova
-
-# Logistic regression (caret)------------------------------------------------------------------------
-#https://rstudio-pubs-static.s3.amazonaws.com/43302_2d242dbea93b46c98ed60f6ac8c62edf.html
-fitControl <- trainControl(method = "cv",
-                           number = 5,
-                           ## Estimate class probabilities
-                           classProbs = TRUE,
-                           ## Evaluate performance using 
-                           ## the following function
-                           summaryFunction = twoClassSummary)
-
-glmBoostModel <- train(Class ~ ., data=trainData, method = "glmboost", metric="ROC", trControl = fitControl, tuneLength=5, center=TRUE, family=Binomial(link = c("logit")))
-
