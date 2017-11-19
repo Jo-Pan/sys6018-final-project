@@ -1,37 +1,41 @@
 # SYS - Final Project
 # Amazon fine food review
 # https://www.kaggle.com/snap/amazon-fine-food-reviews
-
 library(tm)
 library(class)
-library(ngram)
+library(tidyr) #unite two columns into one
+#library(ngram) 
 
-setwd('/home/yingjie/Desktop/SYS_Final_Proj')
+#setwd('/home/yingjie/Desktop/SYS_Final_Proj')
+#setwd('/Users/Pan/Google Drive/Data Science/SYS 6018')
 
 # LOAD IN DATA
 data = read.csv("Reviews.csv")
 
-# CLEAN DATA
+#Data Exploration [clean data, cor] -------------------------------------------------------------------------
 # Get rid of unuseful information 
 names(data)
-col = c("ProductId", "UserId", "ProfileName")
-data = data[, !names(data) %in% col, drop=F]
-# Get rid of 0 helpfulness denominator and only keep helpfulness denominator >= 3
-data_clean = data[data$HelpfulnessDenominator!=0 & data$HelpfulnessDenominator>=3,]
+data_clean = data[, !names(data) %in% c("UserId", "ProfileName") , drop=F]
+
+#create a new column for combined text
+data_clean$comb_text<-paste(data_clean$Summary,data_clean$Text, sep=".")
 
 # Create a new column for helpfulness percent
 data_clean$help_perc = data_clean$HelpfulnessNumerator/data_clean$HelpfulnessDenominator
 
-# DATA EXPLORATION
-hist(data_clean$help_perc, breaks="FD", xlim=c(0,1))
-hist(data_clean$Score)
-ds = data_clean[data_clean$Score == 5,][1:10,]
-dp = data_clean[data_clean$Score == 1,][1:10,]
-# It seems like high score corresponds to high % usefulness and low score corresponds to low % usefulness
-cor(data_clean$help_perc, data_clean$Score) # 0.5033756 correlation
+# Create a new column for helpfulness indicator
+data_clean$help_int<-NaN
+data_clean[data_clean$HelpfulnessDenominator>=3 & data_clean$help_perc>0.5,]$help_int<-1
+data_clean[data_clean$help_int!=1,]$help_int<-0
 
-######### PRE-PROCESS TEXT
-text.df = as.data.frame(data_clean[,'Text'], stringsAsFactors = FALSE)
+# DATA EXPLORATION
+hist(data_clean$help_int, breaks="FD", xlim=c(0,1))
+hist(data_clean$Score)
+cor(data_clean$help_int, data_clean$Score) #cor=0.04234355. not much correlation.
+
+#Pre-Process Text [tfidf, tm_map, sparsity]-------------------------------------------------------------------------
+
+text.df = as.data.frame(data_clean$comb_text, stringsAsFactors = FALSE)
 text = VCorpus(DataframeSource(text.df))
 
 # regular indexing returns a sub-corpus
@@ -44,9 +48,9 @@ text[[1]]$content
 # compute TF-IDF matrix and inspect sparsity
 text.tfidf = DocumentTermMatrix(text, control = list(weighting = weightTfIdf))
 text.tfidf  # non-/sparse entries indicates how many of the DTM cells are non-zero and zero, respectively.
-# sparsity is number of non-zero cells divided by number of zero cells.
+            # sparsity is number of non-zero cells divided by number of zero cells.
 
-##### Reducing Term Sparsity #####
+#Reducing Term Sparsity 
 text.clean = tm_map(text, stripWhitespace)                          # remove extra whitespace
 text.clean = tm_map(text.clean, removeNumbers)                      # remove numbers
 text.clean = tm_map(text.clean, removePunctuation)                  # remove punctuation
@@ -60,7 +64,11 @@ text.clean.tfidf = DocumentTermMatrix(text.clean, control = list(weighting = wei
 # clean = as.matrix(text.clean.tfidf) # Error: cannot allocate vector of size 82.2 Gb
 tfidf.sparse = removeSparseTerms(text.clean.tfidf, 0.9)
 cleansparse = as.matrix(tfidf.sparse)
-trainvar = as.data.frame(cleansparse)
-traindata = cbind(trainvar,data_clean$Score)
-trainscore = t(data_clean$Score)
 
+#train dataset for modeling
+trainvar = as.data.frame(cleansparse)
+trainscore = t(data_clean$Score)
+traindata = cbind(trainvar,trainscore)
+
+###################### Models ###################### ------------------------------------------------------------------------------------
+#Logistic regression ------------------------------------------------------------------------
