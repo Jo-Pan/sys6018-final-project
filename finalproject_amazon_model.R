@@ -9,16 +9,17 @@ library(caret)
 library(MASS) #stepAIC
 library(pROC) #ROC, AUC
 
-data<-read.csv("modeldata.csv")
+data<-read.csv("J:/private/modeldata_2.csv")
 
 ###################### Data Preprocess ###################### --------------------------------
-colnames(data)[c(1,2)]<-c("id","help_int")
+data<-data[,2:703]
+colnames(data)[c(1,2,3,4)]<-c("id","help_int","summary_length","text_length")
 data$help_int<-factor(data$help_int)
 
-nrow(data[data$help_int=='X2',]) #97890
-nrow(data[data$help_int=='X1',]) #470564
-all1<-which(data$help_int=='X2',arr.ind=TRUE) 
-all0<-which(data$help_int=='X1',arr.ind=TRUE) 
+nrow(data[data$help_int==1,]) #70887
+nrow(data[data$help_int==0,]) #324083
+all1<-which(data$help_int==1,arr.ind=TRUE) 
+all0<-which(data$help_int==0,arr.ind=TRUE) 
 
 # create proper level names to prevent error for modeling
 feature.names=names(data)
@@ -56,35 +57,24 @@ step$anova
 # Logistic regression (caret) -----------------------------------------------------------------
 model_glm<-train(trainSet[,predictorsNames], trainSet[,outcomeName], 
                  method='glm')
-  #summary(model_glm)
+#summary(model_glm)
 predictions <- predict(object=model_glm, trainSet[,predictorsNames])
 auc <- roc(ifelse(trainSet[,outcomeName]=="X2",1,0), ifelse(predictions=="X2",1,0))
-print(auc$auc) #0.5367
+print(auc$auc) #0.5401
 
 # Variable importance for GLM
 plot(varImp(object=model_glm),main="GLM - Variable Importance")
 glm_imp<-varImp(object=model_glm)$importance
 glm_imp$var<-row.names(glm_imp)
 glm_imp<-glm_imp[order(-glm_imp$Overall),]
-glm_imp_var<-glm_imp[glm_imp$Overall>10,'var'] #470
+glm_imp_var<-glm_imp[glm_imp$Overall>10,'var'] #271
 
 
-# gbm (boosting) (caret)----------------------------------------------------------------------
-# history: 
-#       1) with 1000 rows: "shrinkage = c(0.01,0.001)".        0.001 is much better.
-#                          "interaction.depth =  c(1, 5, 10)". 1 & 5 is better. 
-#                          "n.trees = c(100,500,1000)".       500 the best.slightly outperform 100 sometimes.
-#                                                             100 best among the rest.
-#                           best auc = 0.542
-#       2) with 10000 rows: "interaction.depth =  c(1, 5)"     5 is better
-#                           "n.trees = c(100,500,1000),"       1000 is the best
-#                           "shrinkage = c(0.001),"
-#                            best AUC = 0.6219176
-
+# gbm (boosting) (caret) best AUC= 0.622----------------------------------------------------------------------
 # parameters optimizing:
-gbmGrid <-  expand.grid(interaction.depth =  c(6,10),
-                        n.trees = c(1000,2000),
-                        shrinkage = c(0.001),
+gbmGrid <-  expand.grid(interaction.depth =  c(1,5,10),
+                        n.trees = c(500,1000,1500,2000),
+                        shrinkage = c(0.01,0.001),
                         n.minobsinnode=10)
 
 model_gbm <- train(trainSet[,predictorsNames], trainSet[,outcomeName], 
@@ -92,15 +82,52 @@ model_gbm <- train(trainSet[,predictorsNames], trainSet[,outcomeName],
                    trControl=objControl,  
                    metric = "ROC",
                    tuneGrid = gbmGrid)
+model_gbm
 
-plot(model_gbm)
+# history: 
+#       1) with 10000 rows (without summary length and text length): 
+#                           "interaction.depth =  c(1, 5)"     5 is better
+#                           "n.trees = c(100,500,1000),"       1000 is the best
+#                           "shrinkage = c(0.001),"
+#                            best AUC = 0.6219176
+#   2) with 10000 rows (with summary length and text length)
+#       best AUC =  0.6221544
+#       comment: increase ntree from 1000 to 2000 doesn't help a lot.
+# shrinkage  interaction.depth  n.trees  ROC        Sens       Spec       
+# 0.001       1                  500     0.6162054  1.0000000  0.000000000
+# 0.001       1                 1000     0.6198955  1.0000000  0.000000000
+# 0.001       1                 1500     0.6204239  1.0000000  0.000000000
+# 0.001       1                 2000     0.6207190  1.0000000  0.000000000
+# 0.001       5                  500     0.6207595  1.0000000  0.000000000
+# ***0.001       5                 1000     0.6220750  1.0000000  0.000000000***
+# 0.001       5                 1500     0.6217820  1.0000000  0.000000000
+# ***0.001       5                 2000     0.6221544  1.0000000  0.000000000***
+# 0.001      10                  500     0.6181787  1.0000000  0.000000000
+# 0.001      10                 1000     0.6191999  1.0000000  0.000000000
+# 0.001      10                 1500     0.6196583  1.0000000  0.000000000
+# 0.001      10                 2000     0.6186000  0.9998785  0.000000000
+# 0.010       1                  500     0.6205493  1.0000000  0.000000000
+# 0.010       1                 1000     0.6181108  1.0000000  0.000000000
+# 0.010       1                 1500     0.6150899  0.9996354  0.000000000
+# 0.010       1                 2000     0.6132176  0.9985416  0.003386005
+# 0.010       5                  500     0.6151345  0.9993923  0.001693002
+# 0.010       5                 1000     0.6073571  0.9952601  0.010158014
+# 0.010       5                 1500     0.6010847  0.9902771  0.019751693
+# 0.010       5                 2000     0.5975893  0.9831065  0.030474041
+# 0.010      10                  500     0.6091713  0.9970831  0.008465011
+# 0.010      10                 1000     0.6000915  0.9885756  0.021444695
+# 0.010      10                 1500     0.5932386  0.9782450  0.037810384
+# 0.010      10                 2000     0.5891345  0.9725328  0.047968397
 
 # knn (caret) ------------------------------------------------------------------------
+# not able to run 10000
 model_knn <- train(trainSet[c(1:5000),predictorsNames], trainSet[c(1:5000),outcomeName], 
                    method='knn', 
                    trControl=objControl, 
                    metric = "ROC",
                    tuneLength = 20)
+# history: 
+#       1) with 5000 rows (without summary length and text length): 
 # k   ROC        Sens       Spec       
 # 5  0.5373886  0.9149123  0.100207410
 # 7  0.5475508  0.9423116  0.079921014
@@ -124,3 +151,5 @@ model_knn <- train(trainSet[c(1:5000),predictorsNames], trainSet[c(1:5000),outco
 # 43  0.5563074  1.0000000  0.000000000
 
 plot(model_knn)
+# Stacking ----------------------------------------------------------------------------------
+gbm_prob <- predict(object=model_glm, trainSet[,predictorsNames], type="prob")
