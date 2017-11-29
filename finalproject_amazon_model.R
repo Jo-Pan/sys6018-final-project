@@ -8,18 +8,19 @@ setwd('/Users/Pan/Google Drive/Data Science/SYS 6018')
 library(caret)
 library(MASS) #stepAIC
 library(pROC) #ROC, AUC
+library(e1071) #svm
 
-data<-read.csv("J:/private/modeldata_2.csv")
+data<-read.csv("modeldata_2.csv")
 
 ###################### Data Preprocess ###################### --------------------------------
-data<-data[,2:703]
-colnames(data)[c(1,2,3,4)]<-c("id","help_int","summary_length","text_length")
+data<-data[,2:703] #drop the weird "X" column
+colnames(data)[c(1,2,3,4)]<-c("id","help_int","summary_length","text_length")  #standardized column names
 data$help_int<-factor(data$help_int)
 
 nrow(data[data$help_int==1,]) #70887
 nrow(data[data$help_int==0,]) #324083
-all1<-which(data$help_int==1,arr.ind=TRUE) 
-all0<-which(data$help_int==0,arr.ind=TRUE) 
+all1<-which(data$help_int==1,arr.ind=TRUE)  #get index for helpful review
+all0<-which(data$help_int==0,arr.ind=TRUE)  #get index for unhelpful review
 
 # create proper level names to prevent error for modeling
 feature.names=names(data)
@@ -69,6 +70,31 @@ glm_imp$var<-row.names(glm_imp)
 glm_imp<-glm_imp[order(-glm_imp$Overall),]
 glm_imp_var<-glm_imp[glm_imp$Overall>10,'var'] #271
 
+# svm -----------------------------------------------------------------------------------------
+model_weights <- ifelse(trainSet$help_int == "X1",
+                        (1/table(trainSet$help_int)[1]) * 0.5,
+                        (1/table(trainSet$help_int)[2]) * 0.5)
+
+### Linear Support Vector Machines with Class Weights
+svmGrid_w <-  expand.grid(cost= c(.25, .5, 1),
+                          weight = model_weights)
+
+model_svm_w <- train(trainSet[,predictorsNames], trainSet[,outcomeName], 
+                   method='svmRadialWeights', 
+                   trControl=objControl,  
+                   metric = "ROC",
+                   tuneGrid = svmGrid_w)
+
+### Support Vector Machines with Class Weights
+svmGrid_w_r <-  expand.grid(cost= c(.25, .5, 1),
+                            sigma = .05,
+                            weight = model_weights)
+
+model_svm_w_r <- train(trainSet[,predictorsNames], trainSet[,outcomeName], 
+                     method='svmLinearWeights', 
+                     trControl=objControl,  
+                     metric = "ROC",
+                     tuneGrid = svmGrid_w)
 
 # gbm (boosting) (caret) best AUC= 0.622----------------------------------------------------------------------
 # parameters optimizing:
@@ -151,5 +177,77 @@ model_knn <- train(trainSet[c(1:5000),predictorsNames], trainSet[c(1:5000),outco
 # 43  0.5563074  1.0000000  0.000000000
 
 plot(model_knn)
+# kmeans + svm --------------------------------------------------------------
+# this model is to resembel topic modeling
+
+kmeans_var<-predictorsNames[3:700] #use only term frequecy. 
+cor(data$text_length,as.numeric(data$help_int))    #0.1549582. add in text_length in second layer.
+cor(data$summary_length,as.numeric(data$help_int)) #0.05789282
+
+aucdf<-data.frame()
+for (k in 2:20){
+  # first layer model: kmeans
+  cl<-kmeans(trainSet[,kmeans_var], centers=k)
+  
+  tempdf<-data.frame(trainSet$help_int,as.factor(cl$cluster))
+  names(tempdf)<-c("help_int","cluster")
+  aucrow<-c(k)
+  
+  # second layer model: svm
+  for (r in c("radial","linear")){
+    tempsvm<-svm(as.factor(help_int)~., data=tempdf, kernel=r)  
+    print ("---------------------------------")
+    print (paste("k = ",as.character(k)))
+    print (paste("kernel = ",r))
+    auc <- roc(ifelse(tempdf[,outcomeName]=="X2",1,0), ifelse(fitted(tempsvm)=="X2",1,0))
+    aucrow<-c(aucrow,auc$auc[1])
+  }
+  aucdf<-rbind(aucdf,aucrow)
+  }
+colnames(aucdf)<-c("k","radial","linear")
+aucdf
+#1) with text_length
+#     k    radial linear
+# 1   2 0.5021358    0.5
+# 2   3 0.5025178    0.5
+# 3   4 0.5032037    0.5
+# 4   5 0.5021749    0.5
+# 5   6 0.5022357    0.5
+# 6   7 0.5020750    0.5
+# 7   8 0.5023572    0.5
+# 8   9 0.5022357    0.5
+# 9  10 0.5022357    0.5
+# 10 11 0.5020143    0.5
+# 11 12 0.5022964    0.5
+# 12 13 0.5020750    0.5
+# 13 14 0.5022964    0.5
+# 14 15 0.5020143    0.5
+# 15 16 0.5017929    0.5
+# 16 17 0.5017929    0.5
+# 17 18 0.5017929    0.5
+# 18 19 0.5017929    0.5
+# 19 20 0.5017929    0.5
+
+#1) without text_length. useless :(
+#     k radial linear
+# 1   2    0.5    0.5
+# 2   3    0.5    0.5
+# 3   4    0.5    0.5
+# 4   5    0.5    0.5
+# 5   6    0.5    0.5
+# 6   7    0.5    0.5
+# 7   8    0.5    0.5
+# 8   9    0.5    0.5
+# 9  10    0.5    0.5
+# 10 11    0.5    0.5
+# 11 12    0.5    0.5
+# 12 13    0.5    0.5
+# 13 14    0.5    0.5
+# 14 15    0.5    0.5
+# 15 16    0.5    0.5
+# 16 17    0.5    0.5
+# 17 18    0.5    0.5
+# 18 19    0.5    0.5
+# 19 20    0.5    0.5
 # Stacking ----------------------------------------------------------------------------------
 gbm_prob <- predict(object=model_glm, trainSet[,predictorsNames], type="prob")
