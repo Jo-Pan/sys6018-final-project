@@ -9,6 +9,7 @@ library(caret)
 library(MASS) #stepAIC
 library(pROC) #ROC, AUC
 library(e1071) #svm
+library(caretEnsemble)
 
 data<-read.csv("modeldata_2.csv")
 
@@ -37,6 +38,13 @@ trainrows<-sample(1:nrow(data),size=10000)
 trainrows.bal<-c(sample(all1,size=5000),sample(all0,size=5000)) #have not use yet.
 trainSet <- data[trainrows,]
 testSet <- data[-trainrows,]
+
+trainSet.b <- data[trainrows.bal,]
+testSet.b <- data[-trainrows.bal,]
+
+finalrows<-sample(1:nrow(data),size=100000)
+finalSet <- data[finalrows,]
+finaltestSet<-data[-finalrows,]
 
 # save outcome's name and predictors'names
 outcomeName<-'help_int'
@@ -278,3 +286,23 @@ aucdf
 # 19 20    0.5    0.5
 # Stacking ----------------------------------------------------------------------------------
 gbm_prob <- predict(object=model_glm, trainSet[,predictorsNames], type="prob")
+
+###################### Models with balance data ###################### -----------------------------------------
+# create submodels
+gbmGrid.b <-  expand.grid(interaction.depth =  c(5),
+                        n.trees = c(500,1000),
+                        shrinkage = c(0.01,0.001),
+                        n.minobsinnode=10)
+
+models <- caretList(trainSet.b[,predictorsNames], trainSet.b[,outcomeName], 
+                    metric = "ROC", 
+                    trControl=objControl, 
+                    tuneList = list(
+                      knn.b=caretModelSpec(method='knn',tuneLength=5),
+                      glm.b=caretModelSpec(method='glm',family='binomial'),
+                      rpart.b = caretModelSpec(method='rpart'),
+                      gbm.b=caretModelSpec(method='gbm',tuneGrid = gbmGrid.b)
+                    ))
+results <- resamples(models)
+summary(results)
+dotplot(results)
