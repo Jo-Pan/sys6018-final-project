@@ -145,6 +145,22 @@ model_gbm
 # 0.010      10                 1500     0.5932386  0.9782450  0.037810384
 # 0.010      10                 2000     0.5891345  0.9725328  0.047968397
 
+# [FINAL] gbm (boosting) -------------------------------------------------
+gbmGrid <-  expand.grid(interaction.depth =  c(5),
+                        n.trees = c(1000),
+                        shrinkage = c(0.001),
+                        n.minobsinnode=10)
+
+FINAL_model_gbm <- train(finalSet[,predictorsNames], finalSet[,outcomeName], 
+                   method='gbm', 
+                   trControl=trainControl(method="cv",number=1, 
+                                          returnResamp='none', 
+                                          summaryFunction = twoClassSummary, 
+                                          classProbs = TRUE),  
+                   metric = "ROC",
+                   tuneGrid = gbmGrid)
+# ROC = 0.4962443
+
 # knn (caret) ------------------------------------------------------------------------
 # not able to run 10000
 model_knn <- train(trainSet[c(1:5000),predictorsNames], trainSet[c(1:5000),outcomeName], 
