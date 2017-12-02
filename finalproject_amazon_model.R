@@ -306,3 +306,29 @@ models <- caretList(trainSet.b[,predictorsNames], trainSet.b[,outcomeName],
 results <- resamples(models)
 summary(results)
 dotplot(results)
+# Call:
+#   summary.resamples(object = results)
+
+# Models: knn.b, glm.b, rpart.b, gbm.b 
+# Number of resamples: 2 
+
+# ROC 
+# Min.   1st Qu.    Median      Mean   3rd Qu.      Max. NA's
+# knn.b   0.5722050 0.5765016 0.5807982 0.5807982 0.5850948 0.5893914    0
+# glm.b   0.5900546 0.5913363 0.5926180 0.5926180 0.5938997 0.5951814    0
+# rpart.b 0.5846698 0.5888747 0.5930797 0.5930797 0.5972846 0.6014896    0
+# gbm.b   0.6363413 0.6369866 0.6376320 0.6376320 0.6382774 0.6389227    0
+
+# Sens 
+#           Min. 1st Qu. Median   Mean 3rd Qu.   Max. NA's
+# knn.b   0.5284  0.5348 0.5412 0.5412  0.5476 0.5540    0
+# glm.b   0.5584  0.5633 0.5682 0.5682  0.5731 0.5780    0
+# rpart.b 0.5036  0.5281 0.5526 0.5526  0.5771 0.6016    0
+# gbm.b   0.6276  0.6357 0.6438 0.6438  0.6519 0.6600    0
+
+# Spec 
+# Min. 1st Qu. Median   Mean 3rd Qu.   Max. NA's
+# knn.b   0.5628  0.5650 0.5672 0.5672  0.5694 0.5716    0
+# glm.b   0.5588  0.5650 0.5712 0.5712  0.5774 0.5836    0
+# rpart.b 0.5540  0.5759 0.5978 0.5978  0.6197 0.6416    0
+# gbm.b   0.5340  0.5437 0.5534 0.5534  0.5631 0.5728    0
