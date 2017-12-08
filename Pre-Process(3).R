@@ -94,7 +94,7 @@ tfidf.sparse = removeSparseTerms(text.clean.tfidf, 0.99) #terms: 656
 # Maximal term length: 11
 # Weighting          : term frequency - inverse document frequency (normalized) (tf-idf)
 
-# n-gram -------------------------------------------------------------------------
+# n-gram ---------------------------------------------------------------------------------------------------------------
 ###  bigrams 
 #http://tm.r-forge.r-project.org/faq.html#Bigrams
 BigramTokenizer <-
@@ -115,7 +115,7 @@ tri.tdm<-removeSparseTerms(tdm3, 0.99) #terms: 0
 #inspect(tri.tdm)
 
 
-# Data for modeling -------------------------------------------------------------------------
+# Data for modeling -----------------------------------------------------------------------------------------------------
 combtext.clean.df.uni<-as.data.frame(as.matrix(tfidf.sparse), stringsAsFactors=FALSE)
 combtext.clean.df.bi<-as.data.frame(t(as.matrix(bi.tdm)), stringsAsFactors=FALSE)
 
@@ -124,5 +124,5 @@ write.csv(modeldata_2, file = "modeldata_3.csv")
 #target: help_int
 #predictors: ~.-Id
 
-set.seed(1)
-trainrows<-sample(1:nrow(modeldata),size=nrow(modeldata)*0.7)
+#set.seed(1)
+#trainrows<-sample(1:nrow(modeldata),size=nrow(modeldata)*0.7)
