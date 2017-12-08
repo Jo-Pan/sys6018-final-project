@@ -3,7 +3,8 @@
 1. [Collab] Github link. (Already Public)
 2. [Collab] Report (also needs to be upload to Github)
 3. [Collab] Data Link (balance and unbalance)
-  - modeldata_3.csv
+    - modeldata_3.csv
+    - reviews.csv
 
 # Team Member
 |    Name         | Computing ID  | 
@@ -18,3 +19,4 @@ Both team members participated in all the parts in the project.
 | ------------------   | ------------------------------------ | 
 | Pre-Process(3).R     | Final Pre-Process file to be checked |
 |finalproject_amazon_model.R | Modeling part                  |
+|ROC_KNN.png| ROC plot for KNN|
