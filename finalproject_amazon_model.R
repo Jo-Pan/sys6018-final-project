@@ -2,9 +2,6 @@
 # Amazon fine food review
 # https://www.kaggle.com/snap/amazon-fine-food-reviews
 
-#setwd('/home/yingjie/Desktop/SYS_Final_Proj')
-setwd('/Users/Pan/Google Drive/Data Science/SYS 6018')
-
 library(caret)
 library(MASS) #stepAIC
 library(pROC) #ROC, AUC
