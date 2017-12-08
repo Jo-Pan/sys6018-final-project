@@ -1,9 +1,10 @@
 # sys6018-final-project
 
-## Kaggle competition: https://www.kaggle.com/snap/amazon-fine-food-reviews
+## Kaggle competition:  
+https://www.kaggle.com/snap/amazon-fine-food-reviews
 
 ## Data links
-Original data: https://drive.google.com/open?id=1RovJhm1XDmn3BeJVENNkARTeLZqJDovC
+Original data: https://drive.google.com/open?id=1RovJhm1XDmn3BeJVENNkARTeLZqJDovC  
 Data for modeling (after pre-process): https://drive.google.com/file/d/1xSyeZd1En9dPr6Goqwo2MpHelXDzm1Yo/view?usp=sharing
 
 ## Team Member
