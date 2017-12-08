@@ -11,11 +11,11 @@ library(pROC) #ROC, AUC
 library(e1071) #svm
 library(caretEnsemble)
 
-data<-read.csv("modeldata_2.csv")
+data<-read.csv("modeldata_3.csv")
 
 ###################### Data Preprocess ###################### --------------------------------
-data<-data[,2:703] #drop the weird "X" column
-colnames(data)[c(1,2,3,4)]<-c("id","help_int","summary_length","text_length")  #standardized column names
+data<-data[,2:704] #drop the weird "X" column
+colnames(data)[c(1,2,3,4)]<-c("id","help_int","score","summary_length","text_length")  #standardized column names
 data$help_int<-factor(data$help_int)
 
 nrow(data[data$help_int==1,]) #70887
@@ -332,3 +332,34 @@ dotplot(results)
 # glm.b   0.5588  0.5650 0.5712 0.5712  0.5774 0.5836    0
 # rpart.b 0.5540  0.5759 0.5978 0.5978  0.6197 0.6416    0
 # gbm.b   0.5340  0.5437 0.5534 0.5534  0.5631 0.5728    0
+
+
+############################################################################################
+## Results after adding score variable - slightly lower than before
+# Call:
+#   summary.resamples(object = results)
+# 
+# Models: knn.b, glm.b, rpart.b, gbm.b 
+# Number of resamples: 2 
+# 
+# ROC 
+#               Min.   1st Qu.    Median      Mean   3rd Qu.      Max. NA's
+# knn.b   0.5780099 0.5792950 0.5805802 0.5805802 0.5818653 0.5831504    0
+# glm.b   0.5856276 0.5866640 0.5877004 0.5877004 0.5887367 0.5897731    0
+# rpart.b 0.6015031 0.6016186 0.6017340 0.6017340 0.6018495 0.6019650    0
+# gbm.b   0.6375743 0.6375781 0.6375820 0.6375820 0.6375858 0.6375896    0
+# 
+# Sens 
+#           Min. 1st Qu. Median   Mean 3rd Qu.   Max. NA's
+# knn.b   0.5592  0.5628 0.5664 0.5664  0.5700 0.5736    0
+# glm.b   0.5584  0.5600 0.5616 0.5616  0.5632 0.5648    0
+# rpart.b 0.6060  0.6109 0.6158 0.6158  0.6207 0.6256    0
+# gbm.b   0.6208  0.6249 0.6290 0.6290  0.6331 0.6372    0
+# 
+# Spec 
+# Min. 1st Qu. Median   Mean 3rd Qu.   Max. NA's
+# knn.b   0.5520  0.5524 0.5528 0.5528  0.5532 0.5536    0
+# glm.b   0.5660  0.5685 0.5710 0.5710  0.5735 0.5760    0
+# rpart.b 0.5596  0.5618 0.5640 0.5640  0.5662 0.5684    0
+# gbm.b   0.5708  0.5720 0.5732 0.5732  0.5744 0.5756    0
+
