@@ -119,8 +119,8 @@ tri.tdm<-removeSparseTerms(tdm3, 0.99) #terms: 0
 combtext.clean.df.uni<-as.data.frame(as.matrix(tfidf.sparse), stringsAsFactors=FALSE)
 combtext.clean.df.bi<-as.data.frame(t(as.matrix(bi.tdm)), stringsAsFactors=FALSE)
 
-modeldata<-cbind(data_clean$Id,data_clean$help_int,combtext.clean.df.uni,combtext.clean.df.bi)
-write.csv(modeldata, file = "modeldata.csv")
+modeldata_2<-cbind(data_clean$Id,data_clean$help_int,data_clean$Score,data_clean$summary_length,data_clean$text_length,combtext.clean.df.uni,combtext.clean.df.bi)
+write.csv(modeldata_2, file = "modeldata_3.csv")
 #target: help_int
 #predictors: ~.-Id
 
