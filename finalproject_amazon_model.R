@@ -12,8 +12,10 @@ library(e1071) #svm
 library(caretEnsemble)
 
 data<-read.csv("modeldata_3.csv")
+############################################ -------------------------------------------
+#               Data Preprocess            #
+############################################ 
 
-###################### Data Preprocess ###################### --------------------------------
 data<-data[,2:704] #drop the weird "X" column
 colnames(data)[c(1,2,3,4)]<-c("id","help_int","score","summary_length","text_length")  #standardized column names
 data$help_int<-factor(data$help_int)
@@ -35,14 +37,14 @@ for (f in feature.names) {
 # split train and test set.
 set.seed(1)
 trainrows<-sample(1:nrow(data),size=10000)
-trainrows.bal<-c(sample(all1,size=5000),sample(all0,size=5000)) #have not use yet.
+trainrows.bal<-c(sample(all1,size=5000),sample(all0,size=5000)) #trainrows for balance sampling
 trainSet <- data[trainrows,]
 testSet <- data[-trainrows,]
 
-trainSet.b <- data[trainrows.bal,]
+trainSet.b <- data[trainrows.bal,] #balance train set
 testSet.b <- data[-trainrows.bal,]
 
-finalrows<-sample(1:nrow(data),size=100000)
+finalrows<-sample(1:nrow(data),size=100000) 
 finalSet <- data[finalrows,]
 finaltestSet<-data[-finalrows,]
 
@@ -50,40 +52,44 @@ finaltestSet<-data[-finalrows,]
 outcomeName<-'help_int'
 predictorsNames<-names(trainSet)[!names(trainSet) %in% c(outcomeName,'id')]
 
-###################### Models ###################### -----------------------------------------
+############################################ --------------------------------------------------
+#           Models (unbalcanced)           #
+############################################
 # cross validation setting:
+    # 2-fold cross valiadation.
+    # return class probability.
 objControl <- trainControl(method='cv', number=2, 
                            returnResamp='none', summaryFunction = twoClassSummary, 
                            classProbs = TRUE,verboseIter=FALSE,
                            allowParallel= TRUE)
 
-# Logistic regression - step (not able to run)------------------------------------------------
+# Logistic regression - step (it takes too long to run (>2days))-------------------------------
 glm1 <- glm(as.factor(help_int)~.-id, data=data[trainrows,], family = binomial(link = 'logit'))
 step <- stepAIC(glm1, direction="backward")
 step$anova
 
 
-# Logistic regression (caret) -----------------------------------------------------------------
+# Logistic regression -------------------------------------------------------------------------
 model_glm<-train(trainSet[,predictorsNames], trainSet[,outcomeName], 
                  method='glm')
 #summary(model_glm)
 predictions <- predict(object=model_glm, trainSet[,predictorsNames])
 auc <- roc(ifelse(trainSet[,outcomeName]=="X2",1,0), ifelse(predictions=="X2",1,0))
-print(auc$auc) #0.5401
+print(auc$auc) #AUC=0.5401
 
 # Variable importance for GLM
 plot(varImp(object=model_glm),main="GLM - Variable Importance")
 glm_imp<-varImp(object=model_glm)$importance
 glm_imp$var<-row.names(glm_imp)
 glm_imp<-glm_imp[order(-glm_imp$Overall),]
-glm_imp_var<-glm_imp[glm_imp$Overall>10,'var'] #271
+glm_imp_var<-glm_imp[glm_imp$Overall>10,'var'] #There are 271 variables have importance over 10
 
-# svm -----------------------------------------------------------------------------------------
+# svm （best AUC = 0.502) -----------------------------------------------------------------------------------------
 model_weights <- ifelse(trainSet$help_int == "X1",
                         (1/table(trainSet$help_int)[1]) * 0.5,
                         (1/table(trainSet$help_int)[2]) * 0.5)
 
-### Linear Support Vector Machines with Class Weights
+### Non-Linear Support Vector Machines with Class Weights
 svmGrid_w <-  expand.grid(cost= c(.25, .5, 1),
                           weight = model_weights)
 
@@ -93,7 +99,7 @@ model_svm_w <- train(trainSet[,predictorsNames], trainSet[,outcomeName],
                    metric = "ROC",
                    tuneGrid = svmGrid_w)
 
-### Support Vector Machines with Class Weights
+### Linear Support Vector Machines with Class Weights
 svmGrid_w_r <-  expand.grid(cost= c(.25, .5, 1),
                             sigma = .05,
                             weight = model_weights)
@@ -103,6 +109,7 @@ model_svm_w_r <- train(trainSet[,predictorsNames], trainSet[,outcomeName],
                      trControl=objControl,  
                      metric = "ROC",
                      tuneGrid = svmGrid_w)
+
 
 # gbm (boosting) (caret) best AUC= 0.622----------------------------------------------------------------------
 # parameters optimizing:
@@ -118,7 +125,7 @@ model_gbm <- train(trainSet[,predictorsNames], trainSet[,outcomeName],
                    tuneGrid = gbmGrid)
 model_gbm
 
-# history: 
+# parameter tuning history: 
 #       1) with 10000 rows (without summary length and text length): 
 #                           "interaction.depth =  c(1, 5)"     5 is better
 #                           "n.trees = c(100,500,1000),"       1000 is the best
@@ -169,8 +176,8 @@ FINAL_model_gbm <- train(finalSet[,predictorsNames], finalSet[,outcomeName],
                    tuneGrid = gbmGrid)
 # ROC = 0.4962443
 
-# knn (caret) ------------------------------------------------------------------------
-# not able to run 10000
+# knn (caret) best AUC = 0.6044192 ------------------------------------------------------------------------
+# not able to run 10000. Thus, we used 5000.
 model_knn <- train(trainSet[c(1:5000),predictorsNames], trainSet[c(1:5000),outcomeName], 
                    method='knn', 
                    trControl=objControl, 
@@ -210,14 +217,15 @@ model_knn <- train(trainSet[c(1:5000),predictorsNames], trainSet[c(1:5000),outco
 # 43  0.6044192  0.9965804  0.003311258
 
 # ROC was used to select the optimal model using  the largest value.
-# The final value used for the model was k = 43.
+# The final value used for the model was k = 43. 
+# The higher the K the better AUC.
 
 plot(model_knn)
 
-# kmeans (caret) ------------------------------------------------------------------------
+# kmeans+svm (caret) best AUC = 0.5032037------------------------------------------------------------------------
 kmeans_var<-predictorsNames[3:700] #use only term frequecy. 
 cor(data$text_length,as.numeric(data$help_int))    #0.1549582. add in text_length in second layer.
-cor(data$summary_length,as.numeric(data$help_int)) #0.05789282
+cor(data$summary_length,as.numeric(data$help_int)) #0.05789282. not adding in since not much relation.
 
 aucdf<-data.frame()
 for (k in 2:20){
@@ -284,16 +292,18 @@ aucdf
 # 17 18    0.5    0.5
 # 18 19    0.5    0.5
 # 19 20    0.5    0.5
-# Stacking ----------------------------------------------------------------------------------
-gbm_prob <- predict(object=model_glm, trainSet[,predictorsNames], type="prob")
 
-###################### Models with balance data ###################### -----------------------------------------
-# create submodels
+
+############################################ --------------------------------------------------
+#           Models (balcanced)             #
+############################################
+#tune grid for gbm
 gbmGrid.b <-  expand.grid(interaction.depth =  c(5),
                         n.trees = c(500,1000),
                         shrinkage = c(0.01,0.001),
                         n.minobsinnode=10)
 
+# create submodels
 models <- caretList(trainSet.b[,predictorsNames], trainSet.b[,outcomeName], 
                     metric = "ROC", 
                     trControl=objControl, 
@@ -334,7 +344,10 @@ dotplot(results)
 # gbm.b   0.5340  0.5437 0.5534 0.5534  0.5631 0.5728    0
 
 
-############################################################################################
+############################################ --------------------------------------------------
+# Models (with score variable & balanced)  #
+############################################
+
 ## Results after adding score variable - slightly lower than before
 # Call:
 #   summary.resamples(object = results)
