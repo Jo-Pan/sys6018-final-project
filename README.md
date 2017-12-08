@@ -1,6 +1,6 @@
 # sys6018-final-project
 
-## Kaggle competition:  
+## Kaggle competition link  
 https://www.kaggle.com/snap/amazon-fine-food-reviews
 
 ## Data links
