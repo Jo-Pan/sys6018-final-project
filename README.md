@@ -10,7 +10,7 @@ Data for modeling (after pre-process): https://drive.google.com/file/d/1xSyeZd1E
 ## Team members
 |    Name         | Computing ID  | 
 | -------------   | ------------- | 
-| Yingjie Liu     |  el9qr        |
+| Yingjie Liu     |  yl9qr        |
 | Huitong(Jo) Pan |  hp4zw        | 
 
 Both team members participated in all the parts in the project.
