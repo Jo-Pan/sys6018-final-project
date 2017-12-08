@@ -9,7 +9,7 @@ library(pROC)  #AUC
 library(ngram) 
 
 setwd('/home/yingjie/Desktop/sys6018-final-project')
-#setwd('/Users/Pan/Google Drive/Data Science/SYS 6018')
+# setwd('/Users/Pan/Google Drive/Data Science/SYS 6018')
 
 # LOAD IN DATA
 data = read.csv("Reviews.csv")
