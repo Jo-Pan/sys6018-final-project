@@ -7,7 +7,7 @@ https://www.kaggle.com/snap/amazon-fine-food-reviews
 Original data: https://drive.google.com/open?id=1RovJhm1XDmn3BeJVENNkARTeLZqJDovC  
 Data for modeling (after pre-process): https://drive.google.com/file/d/1xSyeZd1En9dPr6Goqwo2MpHelXDzm1Yo/view?usp=sharing
 
-## Team Member
+## Team members
 |    Name         | Computing ID  | 
 | -------------   | ------------- | 
 | Yingjie Liu     |  el9qr        |
@@ -15,7 +15,7 @@ Data for modeling (after pre-process): https://drive.google.com/file/d/1xSyeZd1E
 
 Both team members participated in all the parts in the project.
 
-## Files Description
+## Files description
 |    File Name         | Descrption                           | 
 | ------------------   | ------------------------------------ | 
 | preprocess_v2.R      | Finalized pre-process file 	      |
