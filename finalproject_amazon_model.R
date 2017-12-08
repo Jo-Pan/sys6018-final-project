@@ -15,6 +15,8 @@ data<-read.csv("modeldata_3.csv")
 
 data<-data[,2:704] #drop the weird "X" column
 colnames(data)[c(1,2,3,4)]<-c("id","help_int","score","summary_length","text_length")  #standardized column names
+#### We first run model without score then added score back
+
 data$help_int<-factor(data$help_int)
 
 nrow(data[data$help_int==1,]) #70887
