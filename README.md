@@ -1,10 +1,4 @@
 # sys6018-final-project
-## Things to be upload (this section needs to be deleted after upload)
-1. [Collab] Github link. (Already Public)
-2. [Collab] Report (also needs to be upload to Github)
-3. [Collab] Data Link (balance and unbalance)
-    - modeldata_3.csv
-    - reviews.csv
 
 # Team Member
 |    Name         | Computing ID  | 
@@ -17,6 +11,8 @@ Both team members participated in all the parts in the project.
 # Files Description
 |    File Name         | Descrption                           | 
 | ------------------   | ------------------------------------ | 
-| Pre-Process(3).R     | Final Pre-Process file to be checked |
+| preprocess_v2.R      | Finalized pre-process file 	      |
 |finalproject_amazon_model.R | Modeling part                  |
+|POS-tagging-demon.R| POS-tagging-demonstration               |
 |ROC_KNN.png| ROC plot for KNN|
+|ROC_Models_Comparison.png| Comparison of ROC results for all models|
