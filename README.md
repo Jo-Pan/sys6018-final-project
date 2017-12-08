@@ -15,7 +15,7 @@ Data for modeling (after pre-process): https://drive.google.com/file/d/1xSyeZd1E
 
 Both team members participated in all the parts in the project.
 
-## Files description
+## File descriptions
 |    File Name         | Descrption                           | 
 | ------------------   | ------------------------------------ | 
 | preprocess_v2.R      | Finalized pre-process file 	      |
