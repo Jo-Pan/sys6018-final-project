@@ -17,7 +17,8 @@ Both team members participated in all the parts in the project.
 
 ## File descriptions
 |    File Name         | Descrption                           | 
-| ------------------   | ------------------------------------ | 
+| ------------------   | ------------------------------------ |
+|Amazon Fine Food Reviews Analysis - Final Paper| Final report|
 | preprocess_v2.R      | Finalized pre-process file 	      |
 |finalproject_amazon_model.R | Modeling part                  |
 |POS-tagging-demon.R| POS-tagging-demonstration               |
