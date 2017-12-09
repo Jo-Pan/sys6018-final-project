@@ -17,3 +17,6 @@ adj=lapply(text, extractPOS, "JJ")
 num_adj=sapply(gregexpr("\\JJ", adj), length) # Number of adjectives in a review
 num_words = sapply(gregexpr("\\W+", text), length) + 1
 perc_adj = num_adj/num_words # 11.3% of the words in this review are adjective
+
+# Reference
+# https://stackoverflow.com/questions/30995232/how-to-use-opennlp-to-get-pos-tags-in-r
