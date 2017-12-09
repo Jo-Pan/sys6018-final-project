@@ -124,5 +124,3 @@ write.csv(modeldata_2, file = "modeldata_3.csv")
 #target: help_int
 #predictors: ~.-Id
 
-#set.seed(1)
-#trainrows<-sample(1:nrow(modeldata),size=nrow(modeldata)*0.7)
