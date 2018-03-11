@@ -7,6 +7,9 @@ https://www.kaggle.com/snap/amazon-fine-food-reviews
 Original data: https://drive.google.com/open?id=1RovJhm1XDmn3BeJVENNkARTeLZqJDovC  
 Data for modeling (after pre-process): https://drive.google.com/file/d/1xSyeZd1En9dPr6Goqwo2MpHelXDzm1Yo/view?usp=sharing
 
+## Report links           
+https://docs.google.com/document/d/1uapb4leGOt8N8Nk3i9jfiroTCtNKQx0O4bQEXpwK6vg/edit?usp=sharing
+
 ## Team members
 |    Name         | Computing ID  | 
 | -------------   | ------------- | 
